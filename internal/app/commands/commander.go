@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/d-darwin/go-bot/internal/service/product"
 
@@ -28,9 +30,11 @@ func (c *Commander) HandleUpdate(update *tgbotapi.Update) {
 	}()
 
 	if update.CallbackQuery != nil {
+		args := strings.Split(update.CallbackQuery.Data, "_")
 		msg := tgbotapi.NewMessage(
 			update.CallbackQuery.Message.Chat.ID,
-			"Data: "+update.CallbackQuery.Data,
+			fmt.Sprintf("Command: %s \n", args[0])+
+				fmt.Sprintf("Offset: %s", args[1]),
 		)
 		c.bot.Send(msg)
 		return
