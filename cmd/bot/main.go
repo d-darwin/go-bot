@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/d-darwin/go-bot/internal/app/commands"
 	"github.com/d-darwin/go-bot/internal/service/product"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	godotenv "github.com/joho/godotenv"
@@ -27,44 +28,12 @@ func main() {
 	}
 
 	productService := product.NewService()
-	updates := bot.GetUpdatesChan(u)
+	commander := commands.NewCommander(bot, productService)
 
-	for update := range updates {
+	for update := range bot.GetUpdatesChan(u) {
 		if update.Message != nil { // If we got a message
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			switch update.Message.Command() {
-			case "help":
-				helpCommandHandler(bot, update.Message)
-			case "list":
-				listCommandHandler(bot, update.Message, productService)
-			default:
-				defaultHandler(bot, update.Message)
-			}
+			commander.HandleUpdate(update.Message)
 		}
 	}
-}
-
-func helpCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID,
-		"/help - help\n"+
-			"/list - list entries",
-	)
-	bot.Send(msg)
-}
-
-func listCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message, productSerice *product.Service) {
-	outputMsg := "Here are all products:\n"
-	products := productSerice.List()
-	for _, p := range products {
-		outputMsg += p.Title + "\n"
-	}
-
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, outputMsg)
-	bot.Send(msg)
-}
-
-func defaultHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "You wrote: "+inputMessage.Text)
-	bot.Send(msg)
 }
