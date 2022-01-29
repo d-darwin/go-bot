@@ -31,9 +31,6 @@ func main() {
 	commander := commands.NewCommander(bot, productService)
 
 	for update := range bot.GetUpdatesChan(u) {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-			commander.HandleUpdate(update.Message)
-		}
+		commander.HandleUpdate(&update)
 	}
 }

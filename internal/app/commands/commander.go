@@ -20,25 +20,34 @@ func NewCommander(bot *tgbotapi.BotAPI, productSerice *product.Service) *Command
 	}
 }
 
-func (c *Commander) HandleUpdate(message *tgbotapi.Message) {
+func (c *Commander) HandleUpdate(update *tgbotapi.Update) {
 	defer func() {
 		if panicValue := recover(); panicValue != nil {
 			log.Printf("Recoverd from panic: %v", panicValue)
 		}
 	}()
 
-	if message == nil {
+	if update.CallbackQuery != nil {
+		msg := tgbotapi.NewMessage(
+			update.CallbackQuery.Message.Chat.ID,
+			"Data: "+update.CallbackQuery.Data,
+		)
+		c.bot.Send(msg)
 		return
 	}
 
-	switch message.Command() {
+	if update.Message == nil {
+		return
+	}
+
+	switch update.Message.Command() {
 	case "help":
-		c.Help(message)
+		c.Help(update.Message)
 	case "list":
-		c.List(message)
+		c.List(update.Message)
 	case "get":
-		c.Get(message)
+		c.Get(update.Message)
 	default:
-		c.Default(message)
+		c.Default(update.Message)
 	}
 }
