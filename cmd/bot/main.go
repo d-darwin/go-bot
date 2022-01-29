@@ -28,22 +28,31 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-
 		if update.Message != nil { // If we got a message
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-			if update.Message.Command() == "help" {
+			switch update.Message.Command() {
+			case "help":
 				helpCommandHandler(bot, update.Message)
-				continue
+			case "list":
+				listCommandHandler(bot, update.Message)
+			default:
+				defaultHandler(bot, update.Message)
 			}
-
-			defaultHandler(bot, update.Message)
 		}
 	}
 }
 
 func helpCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "/help - help")
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID,
+		"/help - help\n"+
+			"/list - list entries",
+	)
+	bot.Send(msg)
+}
+
+func listCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "TBD")
 	bot.Send(msg)
 }
 
