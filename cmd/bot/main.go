@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/d-darwin/go-bot/internal/service/product"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	godotenv "github.com/joho/godotenv"
 )
@@ -25,6 +26,7 @@ func main() {
 		Timeout: 60,
 	}
 
+	productService := product.NewService()
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
@@ -35,7 +37,7 @@ func main() {
 			case "help":
 				helpCommandHandler(bot, update.Message)
 			case "list":
-				listCommandHandler(bot, update.Message)
+				listCommandHandler(bot, update.Message, productService)
 			default:
 				defaultHandler(bot, update.Message)
 			}
@@ -51,8 +53,14 @@ func helpCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
 	bot.Send(msg)
 }
 
-func listCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "TBD")
+func listCommandHandler(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message, productSerice *product.Service) {
+	outputMsg := "Here are all products:\n"
+	products := productSerice.List()
+	for _, p := range products {
+		outputMsg += p.Title + "\n"
+	}
+
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, outputMsg)
 	bot.Send(msg)
 }
 
