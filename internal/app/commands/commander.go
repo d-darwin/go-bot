@@ -1,12 +1,12 @@
 package commands
 
 import (
+	"log"
+
 	"github.com/d-darwin/go-bot/internal/service/product"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
-
-// var registeredCommands = map[string]func(c *Commander, msg *tgbotapi.Message){}
 
 type Commander struct {
 	bot           *tgbotapi.BotAPI
@@ -21,12 +21,16 @@ func NewCommander(bot *tgbotapi.BotAPI, productSerice *product.Service) *Command
 }
 
 func (c *Commander) HandleUpdate(message *tgbotapi.Message) {
-	// command, ok := registeredCommands[message.Command()]
-	// if ok {
-	// 	command(c, message)
-	// } else {
-	// 	c.Default(message)
-	// }
+	defer func() {
+		if panicValue := recover(); panicValue != nil {
+			log.Printf("Recoverd from panic: %v", panicValue)
+		}
+	}()
+
+	if message == nil {
+		return
+	}
+
 	switch message.Command() {
 	case "help":
 		c.Help(message)
