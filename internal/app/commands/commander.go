@@ -1,9 +1,9 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/d-darwin/go-bot/internal/service/product"
 
@@ -22,6 +22,11 @@ func NewCommander(bot *tgbotapi.BotAPI, productSerice *product.Service) *Command
 	}
 }
 
+type CommandData struct {
+	Command string `json:"command"`
+	Offset  int    `json:"offset"`
+}
+
 func (c *Commander) HandleUpdate(update *tgbotapi.Update) {
 	defer func() {
 		if panicValue := recover(); panicValue != nil {
@@ -30,11 +35,11 @@ func (c *Commander) HandleUpdate(update *tgbotapi.Update) {
 	}()
 
 	if update.CallbackQuery != nil {
-		args := strings.Split(update.CallbackQuery.Data, "_")
+		parsedData := CommandData{}
+		json.Unmarshal([]byte(update.CallbackQuery.Data), &parsedData)
 		msg := tgbotapi.NewMessage(
 			update.CallbackQuery.Message.Chat.ID,
-			fmt.Sprintf("Command: %s \n", args[0])+
-				fmt.Sprintf("Offset: %s", args[1]),
+			fmt.Sprintf("Parsed data: %+v", parsedData),
 		)
 		c.bot.Send(msg)
 		return
